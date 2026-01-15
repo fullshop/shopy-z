@@ -1,0 +1,12 @@
+{
+  "name": "shopyz Algeria",
+  "short_name": "shopyz",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3F3DBC",
+  "icons": [
+    { "src": "https://placehold.co/192x192/3F3DBC/white?text=S", "sizes": "192x192", "type": "image/png" },
+    { "src": "https://placehold.co/512x512/3F3DBC/white?text=shopyz", "sizes": "512x512", "type": "image/png" }
+  ]
+}
