@@ -1,18 +1,28 @@
+
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../firebase';
-import { Product } from '../types';
+import { Product, CATEGORIES } from '../types';
 import { useApp } from '../context';
-import { Search, ShoppingBag, Loader2, ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { Search, ShoppingBag, Loader2, ArrowLeft, SlidersHorizontal, X } from 'lucide-react';
 import { DUMMY_PRODUCTS } from '../data';
 
 const Catalog = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<'newest' | 'price_asc' | 'price_desc'>('newest');
   const { t } = useApp();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if category passed in state (from Home or other nav)
+    if (location.state?.category) {
+        setSelectedCategory(location.state.category);
+    }
+  }, [location]);
 
   useEffect(() => {
     const productRef = ref(db, 'products');
@@ -28,7 +38,8 @@ const Catalog = () => {
             price: val.price || '0 DA',
             stock: typeof val.stock === 'number' ? val.stock : 0,
             description: val.description || '',
-            images: Array.isArray(val.images) ? val.images : []
+            images: Array.isArray(val.images) ? val.images : [],
+            category: val.category || 'Uncategorized'
           };
         });
         // Initial load: Newest first (reverse order of insertion usually)
@@ -53,6 +64,10 @@ const Catalog = () => {
         p.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    if (selectedCategory !== "All") {
+        result = result.filter(p => p.category === selectedCategory);
+    }
+
     if (sortBy === 'price_asc') {
         result.sort((a, b) => {
             const pa = parseInt(a.price.replace(/\D/g, '')) || 0;
@@ -66,8 +81,7 @@ const Catalog = () => {
             return pb - pa;
         });
     } 
-    // 'newest' is the default array order from Firebase (reversed above), 
-    // so we don't strictly need to re-sort unless we had a date field.
+    // 'newest' is the default array order from Firebase (reversed above)
     
     return result;
   };
@@ -84,11 +98,19 @@ const Catalog = () => {
     return url;
   };
 
+  // Helper to translate category
+  const getCategoryName = (cat: string) => {
+     if (cat === "All") return t('all_categories');
+     // Construct key dynamically e.g. cat_men
+     const key = `cat_${cat.toLowerCase()}` as any;
+     return t(key) !== key ? t(key) : cat;
+  };
+
   return (
     <div className="min-h-screen bg-bg dark:bg-black pb-20">
-      {/* Sticky Search Header */}
-      <div className="sticky top-[69px] z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-border dark:border-zinc-800 px-[5%] py-4 shadow-sm transition-all">
-        <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row gap-4">
+      {/* Sticky Header with Search and Filter */}
+      <div className="sticky top-[69px] z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-border dark:border-zinc-800 px-[5%] py-4 shadow-sm transition-all flex flex-col gap-4">
+        <div className="max-w-[1600px] mx-auto w-full flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 rtl:right-4 rtl:left-auto" />
                 <input 
@@ -114,14 +136,48 @@ const Catalog = () => {
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 text-xs">▼</div>
             </div>
         </div>
+
+        {/* Category Filter Pills */}
+        <div className="max-w-[1600px] mx-auto w-full overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex gap-2 min-w-max px-1">
+                <button
+                    onClick={() => setSelectedCategory("All")}
+                    className={`px-5 py-2 rounded-full text-sm font-bold transition-all border ${
+                        selectedCategory === "All" 
+                        ? 'bg-dark text-white border-dark dark:bg-white dark:text-black dark:border-white' 
+                        : 'bg-white text-gray-600 border-border dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700 hover:border-dark dark:hover:border-gray-500'
+                    }`}
+                >
+                    {t('all_categories')}
+                </button>
+                {CATEGORIES.map(cat => (
+                    <button
+                        key={cat}
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`px-5 py-2 rounded-full text-sm font-bold transition-all border ${
+                            selectedCategory === cat 
+                            ? 'bg-dark text-white border-dark dark:bg-white dark:text-black dark:border-white' 
+                            : 'bg-white text-gray-600 border-border dark:bg-zinc-800 dark:text-gray-300 dark:border-zinc-700 hover:border-dark dark:hover:border-gray-500'
+                        }`}
+                    >
+                        {getCategoryName(cat)}
+                    </button>
+                ))}
+            </div>
+        </div>
       </div>
 
       <main className="p-5 md:px-[5%] max-w-[1600px] mx-auto">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
              <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-primary font-bold transition-colors">
                 <ArrowLeft size={20} />
                 {t('home')}
              </Link>
+             {selectedCategory !== 'All' && (
+                 <span className="text-sm text-gray-500 font-medium">
+                    Showing: <span className="text-dark dark:text-white font-bold">{getCategoryName(selectedCategory)}</span>
+                 </span>
+             )}
         </div>
 
         {loading ? (
@@ -137,7 +193,20 @@ const Catalog = () => {
                     <ShoppingBag className="w-8 h-8 text-gray-400" />
                  </div>
                  <h2 className="text-xl font-bold text-gray-600 dark:text-gray-300 mb-2">No products found</h2>
-                 <p className="text-gray-400 max-w-xs mx-auto">We couldn't find anything matching your search. Try a different keyword.</p>
+                 <p className="text-gray-400 max-w-xs mx-auto">
+                    {searchTerm 
+                        ? `No results for "${searchTerm}"`
+                        : `No products found in ${getCategoryName(selectedCategory)}`
+                    }
+                 </p>
+                 {selectedCategory !== 'All' && (
+                    <button 
+                        onClick={() => setSelectedCategory('All')} 
+                        className="mt-4 text-primary font-bold hover:underline"
+                    >
+                        View All Products
+                    </button>
+                 )}
                </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8 animate-fadeIn">
@@ -172,6 +241,7 @@ const Catalog = () => {
                     </div>
                     
                     <div className="px-1">
+                      <div className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">{p.category || 'General'}</div>
                       <h3 className="font-bold text-sm md:text-base text-dark dark:text-gray-100 line-clamp-2 leading-snug mb-1 group-hover:text-primary transition-colors">
                         {p.title}
                       </h3>

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ref, onValue, push } from 'firebase/database';
@@ -194,13 +195,21 @@ const ProductDetail = () => {
         </div>
         
         <div className="flex flex-col justify-center">
-          {product.stock <= 5 && product.stock > 0 && (
-            <div className="bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-lg text-xs font-bold w-fit mb-4">
-              {t('scarcity', { stock: product.stock })}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2 mb-4">
+             {product.stock <= 5 && product.stock > 0 && (
+                <div className="bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-lg text-xs font-bold w-fit">
+                {t('scarcity', { stock: product.stock })}
+                </div>
+             )}
+             {product.category && (
+                 <Link to="/catalog" state={{ category: product.category }} className="bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-gray-300 px-3 py-1 rounded-lg text-xs font-bold w-fit uppercase tracking-wider hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">
+                    {product.category}
+                 </Link>
+             )}
+          </div>
           
           <h1 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight">{product.title}</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">{product.description}</p>
           <p className="text-3xl font-extrabold text-primary mb-6">{product.price}</p>
           
           <div className="flex gap-4 mb-8">

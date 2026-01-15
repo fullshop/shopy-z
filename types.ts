@@ -6,6 +6,7 @@ export interface Product {
   images: string[];
   stock: number;
   description?: string;
+  category?: string;
 }
 
 export interface CartItem {
@@ -34,6 +35,16 @@ export interface Review {
 }
 
 export type Lang = 'en' | 'ar';
+
+export const CATEGORIES = [
+  'Men',
+  'Women',
+  'Kids',
+  'Shoes',
+  'Accessories',
+  'Electronics',
+  'Home'
+];
 
 export const TRANSLATIONS = {
   en: {
@@ -108,7 +119,16 @@ export const TRANSLATIONS = {
     sort_by: "Sort by",
     newest: "Newest",
     price_low: "Price: Low to High",
-    price_high: "Price: High to Low"
+    price_high: "Price: High to Low",
+    category: "Category",
+    all_categories: "All",
+    cat_men: "Men",
+    cat_women: "Women",
+    cat_kids: "Kids",
+    cat_shoes: "Shoes",
+    cat_accessories: "Accessories",
+    cat_electronics: "Electronics",
+    cat_home: "Home"
   },
   ar: {
     shop_now: "تسوق الآن",
@@ -182,7 +202,16 @@ export const TRANSLATIONS = {
     sort_by: "ترتيب حسب",
     newest: "الأحدث",
     price_low: "السعر: الأقل إلى الأعلى",
-    price_high: "السعر: الأعلى إلى الأقل"
+    price_high: "السعر: الأعلى إلى الأقل",
+    category: "الفئة",
+    all_categories: "الكل",
+    cat_men: "رجال",
+    cat_women: "نساء",
+    cat_kids: "أطفال",
+    cat_shoes: "أحذية",
+    cat_accessories: "إكسسوارات",
+    cat_electronics: "إلكترونيات",
+    cat_home: "منزل"
   }
 };
 

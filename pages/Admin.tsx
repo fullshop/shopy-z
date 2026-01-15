@@ -1,10 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { ref, onValue, update, remove, push } from 'firebase/database';
 import { signInAnonymously } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { useApp } from '../context';
-import { Order, Product } from '../types';
+import { Order, Product, CATEGORIES } from '../types';
 import { Trash2, Download, Save, CheckSquare, Square, Database, Plus, X, Lock, Upload, Image as ImageIcon, Loader2, Package, ShoppingBag, Truck, CheckCircle, XCircle, Clock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { DUMMY_PRODUCTS } from '../data';
 
@@ -57,7 +58,8 @@ const Admin = () => {
     title: '',
     price: '',
     stock: 10,
-    description: ''
+    description: '',
+    category: 'Men'
   });
   const [productImages, setProductImages] = useState<string[]>([]);
 
@@ -217,12 +219,13 @@ const Admin = () => {
       price: formattedPrice,
       stock: Number(newProduct.stock),
       description: newProduct.description,
+      category: newProduct.category || 'Men',
       images: productImages.length > 0 ? productImages : ['https://placehold.co/600?text=No+Image']
     };
 
     try {
       await push(ref(db, 'products'), productData);
-      setNewProduct({ title: '', price: '', stock: 10, description: '' });
+      setNewProduct({ title: '', price: '', stock: 10, description: '', category: 'Men' });
       setProductImages([]);
       setShowAddForm(false);
       showToast("Product saved!", "success");
@@ -231,7 +234,7 @@ const Admin = () => {
              // Simulate Add
              const fakeId = "local_" + Date.now();
              setProducts(prev => [{ ...productData, id: fakeId } as any, ...prev]);
-             setNewProduct({ title: '', price: '', stock: 10, description: '' });
+             setNewProduct({ title: '', price: '', stock: 10, description: '', category: 'Men' });
              setProductImages([]);
              setShowAddForm(false);
              showToast("Added locally (Server Permission Denied)", "error");
@@ -371,34 +374,47 @@ const Admin = () => {
                     </div>
                     
                     <div className="grid md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-1">{t('title_label')}</label>
-                        <input 
-                        type="text" 
-                        className="w-full p-3 rounded-xl border border-border dark:border-zinc-700 bg-bg dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-primary/50"
-                        value={newProduct.title}
-                        onChange={e => setNewProduct({...newProduct, title: e.target.value})}
-                        />
+                        <div>
+                            <label className="block text-sm font-bold text-gray-500 mb-1">{t('title_label')}</label>
+                            <input 
+                            type="text" 
+                            className="w-full p-3 rounded-xl border border-border dark:border-zinc-700 bg-bg dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-primary/50"
+                            value={newProduct.title}
+                            onChange={e => setNewProduct({...newProduct, title: e.target.value})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-500 mb-1">{t('price_label')}</label>
+                            <input 
+                            type="text" 
+                            placeholder="e.g. 5,000 DA"
+                            className="w-full p-3 rounded-xl border border-border dark:border-zinc-700 bg-bg dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-primary/50"
+                            value={newProduct.price}
+                            onChange={e => setNewProduct({...newProduct, price: e.target.value})}
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-1">{t('price_label')}</label>
-                        <input 
-                        type="text" 
-                        placeholder="e.g. 5,000 DA"
-                        className="w-full p-3 rounded-xl border border-border dark:border-zinc-700 bg-bg dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-primary/50"
-                        value={newProduct.price}
-                        onChange={e => setNewProduct({...newProduct, price: e.target.value})}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-1">{t('stock')}</label>
-                        <input 
-                        type="number" 
-                        className="w-full p-3 rounded-xl border border-border dark:border-zinc-700 bg-bg dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-primary/50"
-                        value={newProduct.stock}
-                        onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
-                        />
-                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label className="block text-sm font-bold text-gray-500 mb-1">{t('stock')}</label>
+                            <input 
+                            type="number" 
+                            className="w-full p-3 rounded-xl border border-border dark:border-zinc-700 bg-bg dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-primary/50"
+                            value={newProduct.stock}
+                            onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-gray-500 mb-1">{t('category')}</label>
+                            <select 
+                                className="w-full p-3 rounded-xl border border-border dark:border-zinc-700 bg-bg dark:bg-zinc-800 outline-none focus:ring-2 focus:ring-primary/50"
+                                value={newProduct.category}
+                                onChange={e => setNewProduct({...newProduct, category: e.target.value})}
+                            >
+                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="mb-4">
@@ -489,6 +505,7 @@ const Admin = () => {
                     <tr>
                         <th className="p-4">Select</th>
                         <th className="p-4">{t('product')}</th>
+                        <th className="p-4">{t('category')}</th>
                         <th className="p-4">Price</th>
                         <th className="p-4">{t('stock')}</th>
                         <th className="p-4 text-right">{t('action')}</th>
@@ -516,6 +533,7 @@ const Admin = () => {
                             {p.title}
                             </div>
                         </td>
+                        <td className="p-4 text-sm text-gray-500">{p.category || '-'}</td>
                         <td className="p-4">{p.price}</td>
                         <td className="p-4">
                             <span className={`px-2 py-1 rounded text-xs font-bold ${p.stock < 5 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
