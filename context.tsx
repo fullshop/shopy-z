@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Lang, TRANSLATIONS, CartItem } from './types';
-import { Truck, CheckCircle, ShoppingBag, Heart, Info, AlertTriangle } from 'lucide-react';
+import { CheckCircle, ShoppingBag, Heart, Info, AlertTriangle } from 'lucide-react';
 import { signInAnonymously } from 'firebase/auth';
 import { auth } from './firebase';
 

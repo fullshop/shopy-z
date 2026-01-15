@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { ref, onValue, update, remove, push } from 'firebase/database';
 import { signInAnonymously } from 'firebase/auth';
@@ -6,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { useApp } from '../context';
 import { Order, Product, CATEGORIES } from '../types';
-import { Trash2, Download, Save, CheckSquare, Square, Database, Plus, X, Lock, Upload, Image as ImageIcon, Loader2, Package, ShoppingBag, Truck, CheckCircle, XCircle, Clock, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Trash2, Download, Save, CheckSquare, Square, Database, Plus, X, Lock, Upload, Image as ImageIcon, Loader2, Package, ShoppingBag } from 'lucide-react';
 import { DUMMY_PRODUCTS } from '../data';
 
 const compressImage = (file: File): Promise<string> => {
@@ -192,7 +191,7 @@ const Admin = () => {
       Promise.all(files.map(file => compressImage(file as File)))
         .then(base64Images => {
           setProductImages(prev => [...prev, ...base64Images]);
-        }).catch(err => {
+        }).catch(() => {
           showToast("Failed to process images", "error");
         });
     }
