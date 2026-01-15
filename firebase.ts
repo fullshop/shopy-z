@@ -1,8 +1,7 @@
-import * as firebaseApp from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
-// Production Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBkA6n4q-7suEICnRZcrgAnBtZ2bwrQyL8",
   authDomain: "shopyz-f79d0.firebaseapp.com",
@@ -14,7 +13,13 @@ const firebaseConfig = {
   measurementId: "G-GQMVD6ELFE"
 };
 
-// Use type casting to handle potential type definition mismatches with initializeApp
-const app = (firebaseApp as any).initializeApp(firebaseConfig);
+// Ensure app is initialized exactly once
+let app;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
+
 export const db = getDatabase(app);
 export const auth = getAuth(app);
