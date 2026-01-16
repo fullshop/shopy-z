@@ -29,9 +29,13 @@ const TrackOrder = () => {
         const data = snapshot.val();
         // Convert object to array and search
         const orders = Object.values(data) as Order[];
-        
-        // precise match on phone
-        const found = orders.find(o => o.phone.replace(/\D/g,'') === phone.replace(/\D/g,''));
+
+        // Precise match on phone, guard against malformed entries.
+        const normalizedTarget = phone.replace(/\D/g, '');
+        const found = orders.find((o) => {
+          if (!o || typeof o.phone !== 'string') return false;
+          return o.phone.replace(/\D/g, '') === normalizedTarget;
+        });
         
         if (found) {
           setResult(found);
