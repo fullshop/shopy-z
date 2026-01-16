@@ -265,31 +265,6 @@ const Admin = () => {
 
   // --- Order Logic ---
 
-  const handleStatusChange = async (orderId: string, newStatus: string) => {
-    // 1. Optimistic Update: Update UI immediately so Admin sees it changed
-    const previousOrders = [...orders];
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-
-    try {
-        // 2. Fire and Forget to DB
-        await update(ref(db, `orders/${orderId}`), { status: newStatus });
-        showToast(`Order updated to ${newStatus}`, "info");
-    } catch (e: any) {
-        // 3. SPECIAL HANDLING: If permission denied, DO NOT REVERT.
-        // Keep the local change so the admin sees it "fixed".
-        if (e.code === 'PERMISSION_DENIED' || e.message?.toLowerCase().includes('permission')) {
-             console.warn("Permission denied by server. Keeping local state.");
-             showToast("Status updated locally (Server Permission Denied)", "error");
-             // DO NOT call setOrders(previousOrders) here.
-        } else {
-             console.error("Update failed:", e);
-             // Revert for real network errors
-             setOrders(previousOrders); 
-             showToast("Update failed: " + e.message, "error");
-        }
-    }
-  };
-
   const exportCSV = () => {
     let csv = "ID,Name,Phone,Items,Total,Status,Date\n";
     orders.forEach(o => {
@@ -595,21 +570,14 @@ const Admin = () => {
                     </td>
                     <td className="p-4 font-bold text-primary">{o.total}</td>
                     <td className="p-4">
-                        <select 
-                            value={o.status}
-                            onChange={(e) => handleStatusChange(o.id, e.target.value)}
-                            className={`p-2 rounded-lg border text-sm font-bold outline-none cursor-pointer ${
-                                o.status === 'Delivered' ? 'bg-green-100 text-green-700 border-green-200' :
-                                o.status === 'Shipped' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                                o.status === 'Cancelled' ? 'bg-red-100 text-red-700 border-red-200' :
-                                'bg-yellow-100 text-yellow-700 border-yellow-200'
-                            }`}
-                        >
-                            <option value="Pending">Pending</option>
-                            <option value="Shipped">Shipped</option>
-                            <option value="Delivered">Delivered</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+                        <span className={`px-3 py-1.5 rounded-lg text-sm font-bold border ${
+                            o.status === 'Delivered' ? 'bg-green-100 text-green-700 border-green-200' :
+                            o.status === 'Shipped' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                            o.status === 'Cancelled' ? 'bg-red-100 text-red-700 border-red-200' :
+                            'bg-yellow-100 text-yellow-700 border-yellow-200'
+                        }`}>
+                            {o.status}
+                        </span>
                     </td>
                     </tr>
                 ))}
